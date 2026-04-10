@@ -1,4 +1,4 @@
-app-id: org.getmonero.Monero
+app-id: io.salvium.Salvium
 runtime: org.kde.Platform
 runtime-version: 5.15-22.08
 sdk: org.kde.Sdk
@@ -8,8 +8,8 @@ finish-args:
   - --socket=x11
   - --socket=wayland
   - --device=all
-  - --filesystem=~/Monero:create
-  - --persist=.bitmonero
+  - --filesystem=~/Salvium:create
+  - --persist=.salvium
 
 cleanup:
   - /include
@@ -20,7 +20,7 @@ cleanup:
   - '*.a'
   - '*.la'
 
-command: monero-wallet-gui
+command: salvium-wallet-gui
 modules:
   - name: protobuf
     buildsystem: cmake-ninja
@@ -96,6 +96,7 @@ modules:
         url: https://github.com/libuv/libuv/archive/v1.44.2.tar.gz
         sha256: e6e2ba8b4c349a4182a33370bb9be5e23c51b32efb9b9e209d0e8556b73a48da
 
+  # NOTE: p2pool is only needed for the standard variant, not the nominer variant.
   - name: p2pool
     buildsystem: cmake-ninja
     config-opts:
@@ -109,7 +110,7 @@ modules:
     post-install:
       - install -Dm755 p2pool $FLATPAK_DEST/bin/p2pool
 
-  - name: monero-gui
+  - name: salvium-gui
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
@@ -128,6 +129,6 @@ modules:
       - type: dir
         path: ../
     post-install:
-      - install -Dpm644 share/org.getmonero.Monero.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
-      - install -Dpm644 share/org.getmonero.Monero.metainfo.xml $FLATPAK_DEST/share/metainfo/$FLATPAK_ID.metainfo.xml
+      - install -Dpm644 share/io.salvium.Salvium.desktop $FLATPAK_DEST/share/applications/$FLATPAK_ID.desktop
+      - install -Dpm644 share/io.salvium.Salvium.metainfo.xml $FLATPAK_DEST/share/metainfo/$FLATPAK_ID.metainfo.xml
       - for x in 16 24 32 48 64 96 128 256; do install -Dpm644 images/appicons/${x}x${x}.png $FLATPAK_DEST/share/icons/hicolor/${x}x${x}/apps/$FLATPAK_ID.png; done

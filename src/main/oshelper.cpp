@@ -262,7 +262,7 @@ bool OSHelper::installed() const
 {
 #ifdef Q_OS_WIN
     static constexpr const wchar_t installKey[] =
-        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Monero GUI Wallet_is1";
+        L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Salvium GUI Wallet_is1";
     static constexpr const wchar_t installValue[] = L"InstallLocation";
 
     DWORD size;

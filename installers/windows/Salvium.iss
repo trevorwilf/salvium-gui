@@ -1,7 +1,8 @@
-; Monero Fluorine Fermi GUI Wallet Installer for Windows
+; Salvium GUI Wallet Installer for Windows
 ; Copyright (c) 2017-2024, The Monero Project
+; Copyright (c) 2024, The Salvium Project
 ; See LICENSE
-#define GuiVersion GetFileVersion("bin\monero-wallet-gui.exe")
+#define GuiVersion GetFileVersion("bin\salvium-wallet-gui.exe")
 
 [Setup]
 AppName=Salvium GUI Wallet
