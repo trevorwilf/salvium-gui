@@ -38,13 +38,15 @@ file(GLOB SOURCE_FILES
     "libwalletqt/UnsignedTransaction.h"
     "daemon/*.h"
     "daemon/*.cpp"
-    "p2pool/*.h"
-    "p2pool/*.cpp"
     "model/*.h"
     "model/*.cpp"
     "qt/*.h"
     "qt/*.cpp"
 )
+if(WITH_P2POOL)
+    file(GLOB P2POOL_SOURCE_FILES "p2pool/*.h" "p2pool/*.cpp")
+    list(APPEND SOURCE_FILES ${P2POOL_SOURCE_FILES})
+endif()
 if(APPLE)
     list(APPEND SOURCE_FILES "qt/macoshelper.mm")
 endif()
@@ -101,13 +103,16 @@ target_include_directories(salvium-wallet-gui PUBLIC
     ${CMAKE_SOURCE_DIR}/salvium/external/qrcodegen
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/daemon
-    ${CMAKE_CURRENT_SOURCE_DIR}/p2pool
 	${CMAKE_CURRENT_SOURCE_DIR}/libwalletqt
 	${CMAKE_CURRENT_SOURCE_DIR}/model
 	${CMAKE_CURRENT_SOURCE_DIR}/QR-Code-scanner
 	${CMAKE_CURRENT_SOURCE_DIR}/zxcvbn-c
     ${X11_INCLUDE_DIR}
 )
+
+if(WITH_P2POOL)
+    target_include_directories(salvium-wallet-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/p2pool)
+endif()
 
 target_compile_definitions(salvium-wallet-gui
 	PUBLIC

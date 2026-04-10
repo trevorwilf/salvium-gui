@@ -341,6 +341,7 @@ quint64 WalletManager::blockchainTargetHeight() const
     return m_pimpl->blockchainTargetHeight();
 }
 
+#ifdef SALVIUM_GUI_WITH_MINING
 double WalletManager::miningHashRate() const
 {
     return m_pimpl->miningHashRate();
@@ -377,6 +378,7 @@ bool WalletManager::stopMining()
 {
     return m_pimpl->stopMining();
 }
+#endif
 
 bool WalletManager::localDaemonSynced() const
 {

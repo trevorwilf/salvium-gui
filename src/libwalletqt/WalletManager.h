@@ -154,13 +154,19 @@ public:
     Q_INVOKABLE quint64 networkDifficulty() const;
     Q_INVOKABLE quint64 blockchainHeight() const;
     Q_INVOKABLE quint64 blockchainTargetHeight() const;
+#ifdef SALVIUM_GUI_WITH_MINING
     Q_INVOKABLE double miningHashRate() const;
-    Q_INVOKABLE bool localDaemonSynced() const;
-    Q_INVOKABLE bool isDaemonLocal(const QString &daemon_address) const;
-
     Q_INVOKABLE void miningStatusAsync();
     Q_INVOKABLE bool startMining(const QString &address, quint32 threads, bool backgroundMining, bool ignoreBattery);
     Q_INVOKABLE bool stopMining();
+#else
+    Q_INVOKABLE double miningHashRate() const { return 0; }
+    Q_INVOKABLE void miningStatusAsync() {}
+    Q_INVOKABLE bool startMining(const QString &, quint32, bool, bool) { return false; }
+    Q_INVOKABLE bool stopMining() { return false; }
+#endif
+    Q_INVOKABLE bool localDaemonSynced() const;
+    Q_INVOKABLE bool isDaemonLocal(const QString &daemon_address) const;
 
     // QML missing such functionality, implementing these helpers here
     Q_INVOKABLE QString urlToLocalPath(const QUrl &url) const;
@@ -211,14 +217,18 @@ signals:
         const QString &hash,
         const QString &firstSigner,
         const QString &secondSigner) const;
+#ifdef SALVIUM_GUI_WITH_MINING
     void miningStatus(bool isMining) const;
+#endif
     void proxyAddressChanged() const;
 
 public slots:
 private:
     friend class WalletPassphraseListenerImpl;
 
+#ifdef SALVIUM_GUI_WITH_MINING
     bool isMining() const;
+#endif
 
     static WalletManager * m_instance;
     Monero::WalletManager * m_pimpl;

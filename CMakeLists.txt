@@ -23,6 +23,20 @@ option(WITH_DESKTOP_ENTRY "Ask to install desktop entry on first startup" ON)
 option(WITH_UPDATER "Regularly check for new updates" ON)
 option(DEV_MODE "Checkout latest salvium master on build" OFF)
 
+option(WITH_MINING "Enable solo mining UI and wallet mining hooks" ON)
+option(WITH_P2POOL "Enable P2Pool integration" ON)
+
+if(NOT WITH_MINING)
+  set(WITH_P2POOL OFF CACHE BOOL "" FORCE)
+endif()
+
+if(WITH_MINING)
+  add_definitions(-DSALVIUM_GUI_WITH_MINING)
+endif()
+if(WITH_P2POOL)
+  add_definitions(-DSALVIUM_GUI_WITH_P2POOL)
+endif()
+
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake")
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)

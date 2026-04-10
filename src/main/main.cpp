@@ -79,7 +79,9 @@
 // IOS exclusions
 #ifndef Q_OS_IOS
 #include "daemon/DaemonManager.h"
+#ifdef SALVIUM_GUI_WITH_P2POOL
 #include "p2pool/P2PoolManager.h"
+#endif
 #endif
 
 #if defined(Q_OS_WIN)
@@ -415,8 +417,10 @@ Verify update binary using 'shasum'-compatible (SHA256 algo) output signed by tw
 #ifndef Q_OS_IOS
     qmlRegisterUncreatableType<DaemonManager>("moneroComponents.DaemonManager", 1, 0, "DaemonManager",
                                                    "DaemonManager can't be instantiated directly");
+#ifdef SALVIUM_GUI_WITH_P2POOL
     qmlRegisterUncreatableType<P2PoolManager>("moneroComponents.P2PoolManager", 1, 0, "P2PoolManager",
                                                    "P2PoolManager can't be instantiated directly");
+#endif
 #endif
     qmlRegisterUncreatableType<AddressBookModel>("moneroComponents.AddressBookModel", 1, 0, "AddressBookModel",
                                                         "AddressBookModel can't be instantiated directly");
@@ -478,9 +482,22 @@ Verify update binary using 'shasum'-compatible (SHA256 algo) output signed by tw
 // Exclude daemon manager from IOS
 #ifndef Q_OS_IOS
     DaemonManager daemonManager;
-    P2PoolManager p2poolManager;
     engine.rootContext()->setContextProperty("daemonManager", &daemonManager);
+#ifdef SALVIUM_GUI_WITH_P2POOL
+    P2PoolManager p2poolManager;
     engine.rootContext()->setContextProperty("p2poolManager", &p2poolManager);
+#endif
+#endif
+
+#ifdef SALVIUM_GUI_WITH_MINING
+    engine.rootContext()->setContextProperty("isMiningBuild", true);
+#else
+    engine.rootContext()->setContextProperty("isMiningBuild", false);
+#endif
+#ifdef SALVIUM_GUI_WITH_P2POOL
+    engine.rootContext()->setContextProperty("isP2PoolBuild", true);
+#else
+    engine.rootContext()->setContextProperty("isP2PoolBuild", false);
 #endif
 
     engine.rootContext()->setContextProperty("isWindows", isWindows);
