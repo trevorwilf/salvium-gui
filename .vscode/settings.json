@@ -1,0 +1,84 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "⚡ PS7": {
+      "path": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe"],
+      "args": ["-NoExit"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiGreen",
+      "overrideName": true
+    },
+
+    "🤖 PS7 + Claude": {
+      "path": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe"],
+      "args": ["-NoExit", "-Command", "& claude"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiMagenta",
+      "overrideName": true
+    },
+
+    "🤖💀 PS7 + Claude YOLO": {
+      "path": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe"],
+      "args": ["-NoExit", "-Command", "& claude --dangerously-skip-permissions"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiRed",
+      "overrideName": true
+    },
+
+
+    "🐍 PS7 + conda": {
+      "path": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe"],
+      "args": ["-ExecutionPolicy", "ByPass", "-NoExit", "-Command", "& conda activate hummingbot"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiYellow",
+      "overrideName": true
+    },
+
+    "🐍 PS7 + Python": {
+      "path": ["C:\\Program Files\\PowerShell\\7\\pwsh.exe"],
+      "args": ["-ExecutionPolicy", "ByPass", "-NoExit", "-Command", "& .\\.venv\\Scripts\\activate"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiYellow",
+      "overrideName": true
+    },
+
+    "🪟 PS 5.1": {
+      "path": ["C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"],
+      "icon": "terminal-powershell",
+      "color": "terminal.ansiRed",
+      "overrideName": true
+    },
+
+    "🐧 Git Bash": {
+      "source": "Git Bash",
+      "icon": "terminal-bash",
+      "color": "terminal.ansiBlue",
+      "overrideName": true
+    },
+
+    "📦 Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "icon": "terminal-cmd",
+      "color": "terminal.ansiCyan",
+      "overrideName": true
+    }
+  },
+
+  "terminal.integrated.defaultProfile.windows": "PowerShell 7",
+
+  "cmake.configureOnOpen": false,
+
+  "files.associations": {
+    "*.qml": "qml",
+    "*.qrc": "xml"
+  },
+
+  "files.exclude": {
+    "build/": true
+  },
+
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.cStandard": "c11"
+}

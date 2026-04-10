@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "compilerPath": "/usr/bin/g++",
+      "intelliSenseMode": "linux-gcc-x64",
+      "cppStandard": "c++17",
+      "cStandard": "c11",
+      "includePath": [
+        "${workspaceFolder}/src/**",
+        "${workspaceFolder}/salvium/src/**",
+        "${workspaceFolder}/salvium/contrib/epee/include/**",
+        "${workspaceFolder}/salvium/external/**"
+      ],
+      "defines": [
+        "BUILD_GUI_DEPS",
+        "BUILD_64",
+        "NDEBUG"
+      ]
+    },
+    {
+      "name": "Win32 (cross-compile)",
+      "compilerPath": "/usr/bin/x86_64-w64-mingw32-g++",
+      "intelliSenseMode": "linux-gcc-x64",
+      "cppStandard": "c++17",
+      "cStandard": "c11",
+      "includePath": [
+        "${workspaceFolder}/src/**",
+        "${workspaceFolder}/salvium/src/**",
+        "${workspaceFolder}/salvium/contrib/epee/include/**",
+        "${workspaceFolder}/salvium/external/**"
+      ],
+      "defines": [
+        "BUILD_GUI_DEPS",
+        "BUILD_64",
+        "NDEBUG",
+        "WIN32",
+        "MINGW",
+        "_WIN32"
+      ]
+    }
+  ],
+  "version": 4
+}

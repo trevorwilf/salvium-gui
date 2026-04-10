@@ -34,3 +34,15 @@ Session.vim
 tags
 # Persistent undo
 [._]*.un~
+
+
+# Local Claude code prompts
+CLAUDE.md
+*_claude_code_prompt.md
+*_claude_code.md
+**/.claude/settings.local.json
+
+# Editor/AI tool directories
+.claude/
+.cursor/
+.agents/

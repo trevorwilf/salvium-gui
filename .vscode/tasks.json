@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Linux Static",
+      "type": "shell",
+      "command": "docker build --tag salvium:build-env-linux --build-arg THREADS=$(nproc) --file Dockerfile.linux . && docker run --rm -v \"${workspaceFolder}:/salvium-gui\" -w /salvium-gui salvium:build-env-linux sh -c 'make release-static -j$(nproc)'",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "env": {
+          "MANUAL_SUBMODULES": "1"
+        }
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Build Windows x64",
+      "type": "shell",
+      "command": "docker build --tag salvium:build-env-windows --build-arg THREADS=$(nproc) -f Dockerfile.windows . && docker run --rm -v \"${workspaceFolder}:/salvium-gui\" -w /salvium-gui salvium:build-env-windows sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j$(nproc)'",
+      "group": "build",
+      "options": {
+        "env": {
+          "MANUAL_SUBMODULES": "1"
+        }
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Clean Build",
+      "type": "shell",
+      "command": "make clean",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}
