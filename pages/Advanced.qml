@@ -54,7 +54,7 @@ ColumnLayout {
             active: state == "Mining"
             text: qsTr("Mining") + translationManager.emptyString
             onSelected: state = "Mining"
-            visible: !isAndroid
+            visible: !isAndroid && isMiningBuild
         }
         MoneroComponents.NavbarItem {
             active: state == "Prove"
@@ -77,14 +77,19 @@ ColumnLayout {
         id: stateView
         property Item currentView
         property Item previousView
-        property Mining miningView: Mining { }
+        property var miningView: isMiningBuild ? miningViewLoader.item : null
+        Loader {
+            id: miningViewLoader
+            active: isMiningBuild
+            source: "qrc:///pages/Mining.qml"
+        }
         property TxKey prooveView: TxKey { }
         property SharedRingDB sharedRingDBView: SharedRingDB { }
         property Sign signView: Sign { }
         Layout.fillWidth: true
         Layout.preferredHeight: panelHeight
         color: "transparent"
-        state: isAndroid ? "Prove" : "Mining"
+        state: (isAndroid || !isMiningBuild) ? "Prove" : "Mining"
 
         onCurrentViewChanged: {
             if (previousView) {
@@ -105,7 +110,7 @@ ColumnLayout {
             State {
                 name: "Mining"
                 PropertyChanges { target: stateView; currentView: stateView.miningView }
-                PropertyChanges { target: root; panelHeight: stateView.miningView.miningHeight + 140 }
+                PropertyChanges { target: root; panelHeight: stateView.miningView ? stateView.miningView.miningHeight + 140 : 900 }
             }, State {
                 name: "Prove"
                 PropertyChanges { target: stateView; currentView: stateView.prooveView }
@@ -123,7 +128,7 @@ ColumnLayout {
 
         StackView {
             id: stackView
-            initialItem: isAndroid ? stateView.prooveView : stateView.miningView
+            initialItem: (isAndroid || !isMiningBuild) ? stateView.prooveView : stateView.miningView
             anchors.fill: parent
             clip: false // otherwise animation will affect left panel
 

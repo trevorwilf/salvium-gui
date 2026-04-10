@@ -43,7 +43,7 @@ import moneroComponents.YieldInfo 1.0
 import moneroComponents.PendingTransaction 1.0
 import moneroComponents.NetworkType 1.0
 import moneroComponents.Settings 1.0
-import moneroComponents.P2PoolManager 1.0
+// P2PoolManager import removed — accessed via context property when isP2PoolBuild
 
 import "components"
 import "components" as MoneroComponents
@@ -520,8 +520,10 @@ ApplicationWindow {
             walletInitialized = true
 
             // check if daemon was already mining and add mining logo if true
-            if (!persistentSettings.useRemoteNode || persistentSettings.allowRemoteNodeMining) {
-                middlePanel.advancedView.miningView.update();
+            if (isMiningBuild && middlePanel.advancedView.miningView) {
+                if (!persistentSettings.useRemoteNode || persistentSettings.allowRemoteNodeMining) {
+                    middlePanel.advancedView.miningView.update();
+                }
             }
         }
     }
@@ -751,8 +753,10 @@ ApplicationWindow {
     function connectRemoteNode() {
         console.log("connecting remote node");
 
-        p2poolManager.exit();
-        p2poolManager.getStatus();
+        if (isP2PoolBuild) {
+            p2poolManager.exit();
+            p2poolManager.getStatus();
+        }
 
         const callback = function() {
             persistentSettings.useRemoteNode = true;
@@ -783,8 +787,10 @@ ApplicationWindow {
 
         console.log("disconnecting remote node");
 
-        p2poolManager.exit();
-        p2poolManager.getStatus();
+        if (isP2PoolBuild) {
+            p2poolManager.exit();
+            p2poolManager.getStatus();
+        }
 
         persistentSettings.useRemoteNode = false;
         currentDaemonAddress = localDaemonAddress
@@ -877,7 +883,7 @@ ApplicationWindow {
         if (splash) {
             appWindow.showProcessingSplash(qsTr("Waiting for daemon to stop..."));
         }
-        p2poolManager.exit()
+        if (isP2PoolBuild) p2poolManager.exit()
         daemonManager.stopAsync(persistentSettings.nettype, persistentSettings.blockchainDataDir, function(result) {
             daemonStartStopInProgress = 0;
             if (splash) {
@@ -911,11 +917,11 @@ ApplicationWindow {
         currentWallet.startRefresh();
         informationPopup.title = qsTr("Daemon failed to start") + translationManager.emptyString;
         informationPopup.text  = error + ".\n\n" + qsTr("Please check your wallet and daemon log for errors. You can also try to start %1 manually.").arg((isWindows)? "salviumd.exe" : "salviumd")
-        if (middlePanel.advancedView.miningView.stopMiningEnabled == true) {
+        if (isMiningBuild && middlePanel.advancedView.miningView && middlePanel.advancedView.miningView.stopMiningEnabled == true) {
             walletManager.stopMining()
-            p2poolManager.exit()
+            if (isP2PoolBuild) p2poolManager.exit()
             middlePanel.advancedView.miningView.update()
-            informationPopup.text += qsTr("\n\nExiting p2pool. Please check that port 19083 is available.") + translationManager.emptyString;
+            if (isP2PoolBuild) informationPopup.text += qsTr("\n\nExiting p2pool. Please check that port 19083 is available.") + translationManager.emptyString;
         }
         informationPopup.icon  = StandardIcon.Critical
         informationPopup.onCloseCallback = null
@@ -2458,7 +2464,7 @@ ApplicationWindow {
         console.log("close accepted");
         // Close wallet non async on exit
         daemonManager.exit();
-        p2poolManager.exit();
+        if (isP2PoolBuild) p2poolManager.exit();
         closeWallet(Qt.quit);
     }
 

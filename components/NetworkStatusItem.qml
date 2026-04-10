@@ -52,11 +52,11 @@ Rectangle {
             case Wallet.ConnectionStatus_Connected:
                 if (!appWindow.daemonSynced)
                     return qsTr("Synchronizing");
-                if (persistentSettings.useRemoteNode && persistentSettings.allowRemoteNodeMining && appWindow.isMining)
+                if (isMiningBuild && persistentSettings.useRemoteNode && persistentSettings.allowRemoteNodeMining && appWindow.isMining)
                     return qsTr("Remote node") + " + " + qsTr("Mining");
                 if (persistentSettings.useRemoteNode)
                     return qsTr("Remote node");
-                return appWindow.isMining ? qsTr("Connected") + " + " + qsTr("Mining"): qsTr("Connected");
+                return (isMiningBuild && appWindow.isMining) ? qsTr("Connected") + " + " + qsTr("Mining"): qsTr("Connected");
             case Wallet.ConnectionStatus_WrongVersion:
                 return qsTr("Wrong version");
             case Wallet.ConnectionStatus_Disconnected:
@@ -88,11 +88,11 @@ Rectangle {
 
             Image {
                 anchors.top: parent.top
-                anchors.topMargin: !appWindow.isMining ? 6 : 4
+                anchors.topMargin: (isMiningBuild && appWindow.isMining) ? 4 : 6
                 anchors.right: parent.right
-                anchors.rightMargin: !appWindow.isMining ? 11 : 0
+                anchors.rightMargin: (isMiningBuild && appWindow.isMining) ? 0 : 11
                 source: {
-                    if(appWindow.isMining) {
+                    if(isMiningBuild && appWindow.isMining) {
                        return "qrc:///images/miningxmr.png"
                     } else if(item.connected == Wallet.ConnectionStatus_Connected || !MoneroComponents.Style.blackTheme) {
                         return "qrc:///images/lightning.png"
@@ -105,7 +105,7 @@ Rectangle {
                     visible: appWindow.walletMode >= 2
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if(!appWindow.isMining) {
+                        if(!isMiningBuild || !appWindow.isMining) {
                             middlePanel.settingsView.settingsStateViewState = "Node";
                             appWindow.showPageRequest("Settings");
                         } else {
@@ -151,7 +151,7 @@ Rectangle {
                     visible: appWindow.walletMode >= 2
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if(!appWindow.isMining) {
+                        if(!isMiningBuild || !appWindow.isMining) {
                             middlePanel.settingsView.settingsStateViewState = "Node";
                             appWindow.showPageRequest("Settings");
                         } else {
