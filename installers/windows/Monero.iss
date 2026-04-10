@@ -56,7 +56,9 @@ Name: "en"; MessagesFile: "compiler:Default.isl"
 
 [Dirs]
 Name: "{app}";
+#ifndef NOMINER
 Name: "{app}\p2pool"; Permissions: users-full
+#endif
 
 [Files]
 ; The use of the flag "ignoreversion" for the following entries leads to the following behaviour:

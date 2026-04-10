@@ -1,3 +1,4 @@
+# NOTE: This workflow is not used by the nominer variant.
 name: ci/gh-actions/verify
 on:
   workflow_dispatch:

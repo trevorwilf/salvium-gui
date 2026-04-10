@@ -18,8 +18,18 @@ env:
 jobs:
 
   build-macos-app:
-    name: 1. Download Daemon & Build GUI App
+    name: 1. Download Daemon & Build GUI App (${{ matrix.variant }})
     runs-on: macos-latest
+    strategy:
+      matrix:
+        variant: [standard, nominer]
+        include:
+          - variant: standard
+            cmake_extra: "-DWITH_MINING=ON -DWITH_P2POOL=ON -DWITH_UPDATER=ON"
+            artifact_suffix: ""
+          - variant: nominer
+            cmake_extra: "-DWITH_MINING=OFF -DWITH_P2POOL=OFF -DWITH_UPDATER=OFF"
+            artifact_suffix: "-nominer"
     env:
       QT_TAG: v5.15.17-lts-lgpl
       QT_PREFIX: ${{ github.workspace }}/qt-install
@@ -86,7 +96,7 @@ jobs:
       - name: Upload Static Daemon Artifact (for next job)
         uses: actions/upload-artifact@v4
         with:
-          name: static-salviumd-local
+          name: static-salviumd-local${{ matrix.artifact_suffix }}
           path: ./static-daemon-extracted/salviumd
           retention-days: 1
 
@@ -138,6 +148,7 @@ jobs:
                 -D Boost_LIBRARY_DIR=/opt/homebrew/opt/boost@1.85/lib \
                 -D CMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/openssl@1.1/lib" \
                 -D CMAKE_CXX_FLAGS="-I/opt/homebrew/opt/boost@1.85/include" \
+                ${{ matrix.cmake_extra }} \
                 ../..
         env:
            CMAKE_PREFIX_PATH: ${{ env.CMAKE_PREFIX_PATH }}
@@ -156,26 +167,34 @@ jobs:
       - name: Upload GUI App Artifact (for next job)
         uses: actions/upload-artifact@v4
         with:
-          name: macos-app-bundle-local
+          name: macos-app-bundle-local${{ matrix.artifact_suffix }}
           path: build/release/bin/salvium-wallet-gui.app
           retention-days: 1
 
   bundle-macos-release:
-    name: 2. Create Final macOS DMG
+    name: 2. Create Final macOS DMG (${{ matrix.variant }})
     runs-on: macos-latest
     needs: build-macos-app
+    strategy:
+      matrix:
+        variant: [standard, nominer]
+        include:
+          - variant: standard
+            artifact_suffix: ""
+          - variant: nominer
+            artifact_suffix: "-nominer"
 
     steps:
       - name: Download Static Daemon
         uses: actions/download-artifact@v4
         with:
-          name: static-salviumd-local
+          name: static-salviumd-local${{ matrix.artifact_suffix }}
           path: ./static-daemon
 
       - name: Download App Bundle
         uses: actions/download-artifact@v4
         with:
-          name: macos-app-bundle-local
+          name: macos-app-bundle-local${{ matrix.artifact_suffix }}
           path: ./salvium-wallet-gui.app
 
       - name: Replace Daemon with Static Version
@@ -189,17 +208,27 @@ jobs:
 
       - name: Create unsigned .dmg
         run: |
-          hdiutil create -fs HFS+ -srcfolder ./salvium-wallet-gui.app -volname "salvium-gui" salvium-gui-unsigned.dmg
+          hdiutil create -fs HFS+ -srcfolder ./salvium-wallet-gui.app -volname "salvium-gui" salvium-gui${{ matrix.artifact_suffix }}-unsigned.dmg
 
       - name: Upload Final DMG Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: final-macos-dmg
-          path: salvium-gui-unsigned.dmg
+          name: final-macos-dmg${{ matrix.artifact_suffix }}
+          path: salvium-gui${{ matrix.artifact_suffix }}-unsigned.dmg
           retention-days: 1
 
   build-windows:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        variant: [standard, nominer]
+        include:
+          - variant: standard
+            cmake_extra: "-DWITH_MINING=ON -DWITH_P2POOL=ON -DWITH_UPDATER=ON"
+            artifact_suffix: ""
+          - variant: nominer
+            cmake_extra: "-DWITH_MINING=OFF -DWITH_P2POOL=OFF -DWITH_UPDATER=OFF"
+            artifact_suffix: "-nominer"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -217,7 +246,7 @@ jobs:
           docker run --rm --user $(id -u):$(id -g) \
           -v "${{ github.workspace }}":/salvium-gui \
           -w /salvium-gui salvium:build-env-windows \
-          sh -c 'make depends root=/depends target=x86_64-w64-mingw32 tag=win-x64 -j$(nproc)'
+          sh -c 'mkdir -p build/x86_64-w64-mingw32/release && cd build/x86_64-w64-mingw32/release && cmake -D STATIC=ON -D DEV_MODE=OFF -DMANUAL_SUBMODULES=OFF -D BUILD_TAG=win-x64 -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=/depends/x86_64-w64-mingw32/share/toolchain.cmake ${{ matrix.cmake_extra }} ../../.. && make -j$(nproc)'
 
       - name: Locate Windows build outputs
         run: |
@@ -236,21 +265,47 @@ jobs:
         run: |
           cd "${{ env.BIN_DIR_PATH }}"
           if [ -f salviumd.exe ]; then
-            zip salvium-gui-windows-x64.zip salvium-wallet-gui.exe salviumd.exe
+            zip salvium-gui${{ matrix.artifact_suffix }}-windows-x64.zip salvium-wallet-gui.exe salviumd.exe
           else
-            zip salvium-gui-windows-x64.zip salvium-wallet-gui.exe
+            zip salvium-gui${{ matrix.artifact_suffix }}-windows-x64.zip salvium-wallet-gui.exe
           fi
-          echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui-windows-x64.zip" >> $GITHUB_ENV
+          echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui${{ matrix.artifact_suffix }}-windows-x64.zip" >> $GITHUB_ENV
+
+      - name: Validate nominer artifact
+        if: matrix.variant == 'nominer'
+        run: |
+          echo "Checking nominer artifact for banned content..."
+          # Must not contain p2pool binaries
+          if ls build/x86_64-w64-mingw32/release/bin/p2pool* 2>/dev/null; then
+            echo "FAIL: p2pool binary found in nominer build"
+            exit 1
+          fi
+          # salviumd SHOULD be present
+          if ! ls build/x86_64-w64-mingw32/release/bin/salviumd* 2>/dev/null; then
+            echo "FAIL: salviumd missing from nominer build"
+            exit 1
+          fi
+          echo "Nominer artifact validation passed"
 
       - name: Upload Artifact (Zipped Windows Build)
         uses: actions/upload-artifact@v4
         with:
-          name: salvium-gui-windows-x64-zip
+          name: salvium-gui-windows-x64${{ matrix.artifact_suffix }}-zip
           path: ${{ env.ZIP_PATH }}
           if-no-files-found: error # Fail the job if the zip wasn't created
 
   docker-linux-static:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        variant: [standard, nominer]
+        include:
+          - variant: standard
+            cmake_extra: ""
+            artifact_suffix: ""
+          - variant: nominer
+            cmake_extra: "-DWITH_MINING=OFF -DWITH_P2POOL=OFF -DWITH_UPDATER=OFF"
+            artifact_suffix: "-nominer"
     steps:
     - uses: actions/checkout@v4
       with:
@@ -265,7 +320,7 @@ jobs:
     - name: prepare build environment (Docker)
       run: docker build --tag salvium:build-env-linux --build-arg THREADS=$(nproc) --file Dockerfile.linux .
     - name: build (inside Docker)
-      run: docker run --rm -v ${{ github.workspace }}:/salvium-gui -w /salvium-gui salvium:build-env-linux sh -c 'make release-static -j$(nproc)'
+      run: docker run --rm -v ${{ github.workspace }}:/salvium-gui -w /salvium-gui salvium:build-env-linux sh -c 'mkdir -p build/release && cd build/release && cmake -D STATIC=ON -D DEV_MODE=OFF -DMANUAL_SUBMODULES=OFF -D BUILD_64=ON -D CMAKE_BUILD_TYPE=Release ${{ matrix.cmake_extra }} ../.. && make -j$(nproc)'
     - name: Fix file permissions
       run: sudo chown -R $(id -u):$(id -g) ${{ github.workspace }}/build
     - name: Locate Linux build outputs
@@ -282,12 +337,28 @@ jobs:
     - name: Create ZIP archive
       run: |
         cd "${{ env.BIN_DIR_PATH }}"
-        zip salvium-gui-linux-x64-static.zip salvium-wallet-gui salviumd
-        echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui-linux-x64-static.zip" >> $GITHUB_ENV
+        zip salvium-gui${{ matrix.artifact_suffix }}-linux-x64-static.zip salvium-wallet-gui salviumd
+        echo "ZIP_PATH=${{ env.BIN_DIR_PATH }}/salvium-gui${{ matrix.artifact_suffix }}-linux-x64-static.zip" >> $GITHUB_ENV
+
+    - name: Validate nominer artifact
+      if: matrix.variant == 'nominer'
+      run: |
+        echo "Checking nominer artifact for banned content..."
+        # Must not contain p2pool binaries
+        if ls build/release/bin/p2pool* 2>/dev/null; then
+          echo "FAIL: p2pool binary found in nominer build"
+          exit 1
+        fi
+        # salviumd SHOULD be present
+        if ! ls build/release/bin/salviumd* 2>/dev/null; then
+          echo "FAIL: salviumd missing from nominer build"
+          exit 1
+        fi
+        echo "Nominer artifact validation passed"
 
     - uses: actions/upload-artifact@v4
       with:
-        name: salvium-gui-linux-x64-static-zip
+        name: salvium-gui-linux-x64-static${{ matrix.artifact_suffix }}-zip
         path: ${{ env.ZIP_PATH }}
 
   # --- Android job completely removed ---
@@ -301,7 +372,6 @@ jobs:
       - bundle-macos-release
       - build-windows
       - docker-linux-static
-      # - docker-android # Removed from needs
 
     steps:
       - name: Download all artifacts
@@ -316,9 +386,11 @@ jobs:
         id: find_files
         run: |
           echo "macos_dmg_path=$(find ./artifacts/final-macos-dmg -name '*.dmg' | head -n 1)" >> $GITHUB_OUTPUT
+          echo "macos_nominer_dmg_path=$(find ./artifacts/final-macos-dmg-nominer -name '*.dmg' | head -n 1)" >> $GITHUB_OUTPUT
           echo "windows_zip_path=$(find ./artifacts/salvium-gui-windows-x64-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
+          echo "windows_nominer_zip_path=$(find ./artifacts/salvium-gui-windows-x64-nominer-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
           echo "linux_zip_path=$(find ./artifacts/salvium-gui-linux-x64-static-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
-          # apk_path removed
+          echo "linux_nominer_zip_path=$(find ./artifacts/salvium-gui-linux-x64-static-nominer-zip -name '*.zip' | head -n 1)" >> $GITHUB_OUTPUT
 
       - name: Create Release Notes File
         env:
@@ -335,5 +407,8 @@ jobs:
           prerelease: false
           files: |
             ${{ steps.find_files.outputs.macos_dmg_path }}
+            ${{ steps.find_files.outputs.macos_nominer_dmg_path }}
             ${{ steps.find_files.outputs.windows_zip_path }}
+            ${{ steps.find_files.outputs.windows_nominer_zip_path }}
             ${{ steps.find_files.outputs.linux_zip_path }}
+            ${{ steps.find_files.outputs.linux_nominer_zip_path }}
