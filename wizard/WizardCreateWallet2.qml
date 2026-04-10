@@ -89,7 +89,7 @@ Rectangle {
               qsTr("These words are a backup of your wallet. They are the only thing needed to access your funds and restore your Salvium wallet, so keep this paper in a safe place and do not disclose it to anybody! It is strongly not recommended to store your recovery phrase digitally (in an email, online service, screenshot, photo, or any other type of computer file).") +
               qsTr("Wallet creation date") +
               qsTr("Wallet restore height") +
-              qsTr("For instructions on how to restore this wallet, visit www.getmonero.org and go to Resources > User Guides > \"How to restore a wallet from mnemonic seed\". Use only Salvium wallets that are trusted and recommended by the Salvium community (see a list of them in www.getmonero.org/downloads).") + translationManager.emptyString
+              qsTr("For instructions on how to restore this wallet, visit salvium.io for guides on restoring from a mnemonic seed. Use only Salvium wallets that are trusted and recommended by the Salvium community.") + translationManager.emptyString
     }
 
     ColumnLayout {

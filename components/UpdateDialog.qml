@@ -95,7 +95,7 @@ Popup {
 
             text: {
                 if (!updateDialog.url) {
-                    return qsTr("Please visit getmonero.org for details") + translationManager.emptyString;
+                    return qsTr("Please visit salvium.io for details") + translationManager.emptyString;
                 }
                 if (downloader.active) {
                     return "%1 (%2%)"
